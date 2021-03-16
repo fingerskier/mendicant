@@ -26,24 +26,23 @@ function assert(url, success, before='', after='') {
   }
 }
 
-async function checkAuthorizedEndpoint(url_fragment, credentials) {
+async function checkAuthorizedEndpoint(url_fragment, payload) {
   let res
   try {
-    await post('login', credentials)
+    await post('login', payload)
     res = await get(url_fragment)
     const status = httpStatusCode(res)
 
     httpAssert(`authorized @ ${url_fragment}`, status===200, 'Response: '+status)
   } catch (error) {
-    console.error('choked on', url_fragment, res)
-    // console.error(error)
+    console.error('choked on'.brightRed, url_fragment, res)
   }
 }
 
-async function checkUnauthorizedEndpoint(url_fragment) {
+async function checkUnauthorizedEndpoint(url_fragment, payload) {
   let res
   try {
-    await get('logout')
+    await get('logout', payload)
     res = await get(url_fragment)
     const status = httpStatusCode(res)
     assert(`${url_fragment} should have been unauthorized`, status)
@@ -54,24 +53,29 @@ async function checkUnauthorizedEndpoint(url_fragment) {
   }
 }
 
-function errorHandler(where, err) {
-  console.error('ERROR'.inverse.brightRed, where, err)
-}
-
-async function get(fragment, payload) {
+async function get(fragment, query) {
   try {
-    const fullUrl = url(fragment)
-    const result = await instance.get(fullUrl, payload)
+    let queryString = ''
+
+    if (query) {
+      queryString = '?'
+      for (let key in query) {
+        queryString += `${key}=${query[key]}`
+      }
+    }
+
+    const fullUrl = url(fragment) + queryString
+
+    const result = await instance.get(fullUrl)
     return result.data
   } catch (error) {
-    console.error('get error', fragment, payload)
+    console.error('get error'.brightRed, fragment, query)
   }
 }
 
 function httpStatusCode(res) {
   let status = -7
   if (res) {
-    console.log(res)
     const response = res.response || {status: -7}
     status = res.code || response.status
   }
@@ -92,7 +96,7 @@ async function post(fragment, payload) {
     const result = await instance.post(url(fragment), payload)
     return result.data
   } catch (error) {
-    console.error('post error', fragment)
+    console.error('post error'.brightRed, fragment)
   }
 }
 

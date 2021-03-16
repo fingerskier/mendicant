@@ -2,7 +2,7 @@ require('dotenv').config()
 const axios = require('axios')
 axios.defaults.withCredentials = true
 
-let baseURL = process.env.MENDICANT_BASE_URL
+let baseURL = process.env.MENDICANT_BASE_URL || 'http://amazon.com'
 require('colors')
 const https = require('https')
 const instance = axios.create({

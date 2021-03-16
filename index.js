@@ -58,13 +58,13 @@ function errorHandler(where, err) {
   console.error('ERROR'.inverse.brightRed, where, err)
 }
 
-async function get(fragment) {
+async function get(fragment, payload) {
   try {
     const fullUrl = url(fragment)
-    const result = await instance.get(fullUrl)
+    const result = await instance.get(fullUrl, payload)
     return result.data
   } catch (error) {
-    console.error('get error', fragment)
+    console.error('get error', fragment, payload)
   }
 }
 
@@ -96,18 +96,26 @@ async function post(fragment, payload) {
   }
 }
 
+function getBaseURL() {
+  return baseURL
+}
+function setBaseURL(newURL) {
+  baseURL = newURL
+}
+
 function timeout(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function validateWebPage(name, url_fragment) {
-  const splashScreen = await get(url_fragment)
-  const validation = JSON.parse(await validator({data: splashScreen}))
+async function validateWebPage(name, url_fragment, payload) {
+  const page = await get(url_fragment, payload)
+  const validation = JSON.parse(await validator({data: page}))
 
   const numErrors = validation.messages.filter(X=>X.type==='error').length
-
   const errorMessages = validation.messages.map(X=>X.message)
-  httpAssert(`validating @ ${name}`, numErrors<1, `Errors: ${numErrors}\n`, errorMessages.join('\n'))
+
+  const goodPage = validation.messages && validation.messages.length
+  httpAssert(`validating @ ${name}`, goodPage, `Errors: ${numErrors}\n`)//, errorMessages.join('\n'))
 }
 
 
@@ -116,8 +124,10 @@ module.exports = {
   checkAuthorizedEndpoint: checkAuthorizedEndpoint,
   checkUnauthorizedEndpoint: checkUnauthorizedEndpoint,
   get: get,
-  post: post,
+  getBaseURL: getBaseURL,
   httpAssert: httpAssert,
+  post: post,
+  setBaseURL: setBaseURL,
   timeout: timeout,
   randInt: randInt,
   validateWebPage: validateWebPage,

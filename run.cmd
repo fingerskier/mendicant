@@ -1,0 +1,1 @@
+npx nodemon test.js

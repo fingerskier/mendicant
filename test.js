@@ -1,3 +1,5 @@
+const mendicant = require('.')('mendicant')
+
 const {
   assert,
   checkAuthorizedEndpoint,
@@ -7,7 +9,8 @@ const {
   setBaseURL,
   timeout,
   validateWebPage,
-} = require('.')
+} = mendicant
+
 
 // Self-Test
 async function main() {

@@ -1,19 +1,8 @@
 module.exports = function(namespace){
   require('dotenv').config()
-  const axios = require('axios')
-  axios.defaults.withCredentials = true
 
   let baseURL = process.env.MENDICANT_BASE_URL || 'http://amazon.com'
   require('colors')
-  const {Agent} = require('https')
-  const instance = axios.create({
-    baseURL: baseURL,
-    withCredentials: true,
-    httpsAgent: new Agent({
-      rejectUnauthorized: false,
-      disableSslVerification: true,
-    })
-  })
   const validator = require('html-validator')
 
   const randInt = max=>Math.floor(Math.random() * Math.floor(max))
@@ -95,7 +84,7 @@ module.exports = function(namespace){
 
   async function post(fragment, payload) {
     try {
-      const result = await instance.post(url(fragment), payload)
+      const result = await fetch(url(fragment), payload)
       return result.data
     } catch (error) {
       console.error('post error'.brightRed, fragment)

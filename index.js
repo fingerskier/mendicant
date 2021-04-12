@@ -72,6 +72,9 @@ module.exports = function(namespace){
       return result.data
     } catch (error) {
       console.error('get error'.brightRed, fragment, query)
+      delete error.request
+      delete error.response
+      console.error(error)
     }
   }
   
@@ -99,6 +102,9 @@ module.exports = function(namespace){
       return result.data
     } catch (error) {
       console.error('post error'.brightRed, fragment)
+      delete error.request
+      delete error.response
+      console.error(error)
     }
   }
 

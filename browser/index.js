@@ -1,19 +1,18 @@
-module.exports = function(namespace){
-  require('dotenv').config()
-
-  let baseURL = process.env.MENDICANT_BASE_URL || 'http://amazon.com'
-  require('colors')
-  const validator = require('html-validator')
+export default function(namespace){
+  const fetchOptions = {
+    credentials: 'include',
+    mode: 'no-cors',
+  }
+  let baseURL = 'http://amazon.com'
 
   const randInt = max=>Math.floor(Math.random() * Math.floor(max))
   const url = fragment=>`${baseURL}/${fragment}`
 
-
   function assert(url, success, before='', after='') {
     if (success) {
-      console.log(`PASS: ${namespace}:`.brightGreen, url, before, after)
+      console.log(`PASS: ${namespace}:`, url, before, after)
     } else {
-      console.log(`FAIL: ${namespace}:`.inverse.brightRed, url, before, after)
+      console.log(`FAIL: ${namespace}:`, url, before, after)
     }
   }
 
@@ -26,7 +25,7 @@ module.exports = function(namespace){
 
       httpAssert(`authorized @ ${url_fragment}`, status===200, 'Response: '+status)
     } catch (error) {
-      console.error('choked on'.brightRed, url_fragment, res)
+      console.error('choked on', url_fragment, res)
     }
   }
 
@@ -54,13 +53,16 @@ module.exports = function(namespace){
           queryString += `${key}=${query[key]}`
         }
       }
-  
+
       const fullUrl = url(fragment) + queryString
-  
-      const result = await instance.get(fullUrl)
+
+      const result = await fetch(fullUrl, {
+        ...fetchOptions,
+        method: 'GET',
+      })
       return result.data
     } catch (error) {
-      console.error('get error'.brightRed, fragment, query)
+      console.error('get error', fragment, query)
     }
   }
   
@@ -76,18 +78,22 @@ module.exports = function(namespace){
 
   function httpAssert(url, success, before='', after='') {
     if (success) {
-      console.log('PASS:'.brightGreen, url, before, after)
+      console.log('PASS:', url, before, after)
     } else {
-      console.log('FAIL:'.inverse.brightRed, url, before, after)
+      console.log('FAIL:', url, before, after)
     }
   }
 
   async function post(fragment, payload) {
     try {
-      const result = await fetch(url(fragment), payload)
+      const result = await fetch(url(fragment), {
+        ...fetchOptions,
+        body: JSON.stringify(payload),
+        method: 'POST',
+      })
       return result.data
     } catch (error) {
-      console.error('post error'.brightRed, fragment)
+      console.error('post error', fragment)
     }
   }
 
@@ -103,16 +109,18 @@ module.exports = function(namespace){
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async function validateWebPage(name, url_fragment, payload) {
-    const page = await get(url_fragment, payload)
-    const validation = JSON.parse(await validator({data: page}))
+  // async function validateWebPage(name, url_fragment, payload) {
+  //   const validator = require('html-validator')
 
-    const numErrors = validation.messages.filter(X=>X.type==='error').length
-    const errorMessages = validation.messages.map(X=>X.message)
+  //   const page = await get(url_fragment, payload)
+  //   const validation = JSON.parse(await validator({data: page}))
 
-    const goodPage = validation.messages && validation.messages.length
-    httpAssert(`validating @ ${name}`, goodPage, `Errors: ${numErrors}\n`)//, errorMessages.join('\n'))
-  }
+  //   const numErrors = validation.messages.filter(X=>X.type==='error').length
+  //   const errorMessages = validation.messages.map(X=>X.message)
+
+  //   const goodPage = validation.messages && validation.messages.length
+  //   httpAssert(`validating @ ${name}`, goodPage, `Errors: ${numErrors}\n`)//, errorMessages.join('\n'))
+  // }
 
 
   return {
@@ -126,6 +134,6 @@ module.exports = function(namespace){
     setBaseURL: setBaseURL,
     timeout: timeout,
     randInt: randInt,
-    validateWebPage: validateWebPage,
+    // validateWebPage: validateWebPage,
   }
 }
